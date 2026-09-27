@@ -1,0 +1,62 @@
+plugins {
+    id 'com.android.application' version '8.6.1'
+}
+
+// Keep the extracted project completely flat: no source/resource subfolders are
+// stored in the ZIP. The one XML resource Android needs is generated at build time.
+def generatedResDir = file("$buildDir/generated/res/accessibility/main")
+def generatedXmlDir = new File(generatedResDir, "xml")
+generatedXmlDir.mkdirs()
+new File(generatedXmlDir, "accessibility_service_config.xml").text = '''<?xml version="1.0" encoding="utf-8"?>
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:accessibilityEventTypes="typeAllMask"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:notificationTimeout="50"
+    android:canRetrieveWindowContent="true"
+    android:accessibilityFlags="flagReportViewIds|flagRetrieveInteractiveWindows|flagIncludeNotImportantViews" />
+'''
+
+android {
+    namespace 'com.example.togglemeaningtest'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.example.togglemeaningtest'
+        minSdk 26
+        targetSdk 35
+        versionCode 1
+        versionName '1.0-test'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    sourceSets {
+        main {
+            java {
+                srcDirs = ['.']
+                include 'MainActivity.java'
+                include 'ToggleAccessibilityService.java'
+                include 'BubbleView.java'
+                include 'TouchOverlayView.java'
+            }
+            manifest.srcFile 'AndroidManifest.xml'
+            res.srcDirs = [generatedResDir]
+            assets.srcDirs = []
+        }
+    }
+}
+
+dependencies {
+    // Deliberately no AndroidX dependencies. This keeps the test APK small and
+    // easier to build on AndroidIDE / similar Android build environments.
+}
